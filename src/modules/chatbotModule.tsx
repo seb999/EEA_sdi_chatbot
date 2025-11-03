@@ -4,10 +4,12 @@ import type { ChatGptMessage } from "./../type/ChatGptMessage";
 
 import { IconButton, Tooltip } from "@mui/material";
 import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
+import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 
 const Chatbot = () => {
       const [chatGptMessages, setChatGptMessages] = useState<ChatGptMessage[]>([]);
       const [input, setInput] = useState("");
+      const [isEnlarged, setIsEnlarged] = useState(false);
       const bottomRef = useRef<HTMLDivElement>(null);
 
       useEffect(() => {
@@ -85,24 +87,30 @@ const Chatbot = () => {
       };
 
       return (
-            <div className="relative">
+            <div
+                  className={`relative transition-all duration-300 ${isEnlarged ? 'fixed inset-0 z-50 bg-white' : ''}`}
+            >
                   <div
-                        className="sticky top-0 z-50 w-full flex items-center px-4 py-2 border-b"
+                        className="sticky top-0 z-50 w-full flex items-center justify-between px-4 py-3 border-b"
                         style={{
-                              backgroundColor: 'oklch(64.8% 0.2 131.684 / 70%)', // 90% opacity
-                              borderBottomColor: 'oklch(76.8% 0.233 130.85)', // optional
+                              backgroundColor: 'oklch(64.8% 0.2 131.684)',
+                              borderBottomColor: 'oklch(76.8% 0.233 130.85)',
                         }}
                   >
-                        <img
-                              src="/EEALogoTransparent.png"
-                              alt="Profile"
-                              className="w-20 h-20 rounded-full m-1 p-1"
-                              style={{ backgroundColor: "oklch(96.2% 0.018 272.314)" }}
-                        />
-                        <h1 className="text-gray-800 text-lg font-semibold"></h1>
+                        <h1 className="text-white text-lg font-semibold">EEA ChatBot</h1>
+                        <IconButton
+                              onClick={() => setIsEnlarged(!isEnlarged)}
+                              size="small"
+                              aria-label="enlarge"
+                              style={{ color: 'white' }}
+                        >
+                              <Tooltip title={isEnlarged ? "Minimize" : "Enlarge"}>
+                                    <OpenInFullIcon />
+                              </Tooltip>
+                        </IconButton>
                   </div>
 
-                  <div className="flex flex-col min-h-[500px]">
+                  <div className={`flex flex-col ${isEnlarged ? 'h-[calc(100vh-60px)]' : 'min-h-[500px]'}`}>
                         {/* Messages Area */}
                         <div
                               className={`flex-grow ${chatGptMessages.length === 0
