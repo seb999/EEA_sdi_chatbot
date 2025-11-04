@@ -7,6 +7,7 @@ import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 
 function App() {
   const [showChatbot, setShowChatbot] = useState(false);
+  const [isEnlarged, setIsEnlarged] = useState(false);
 
   return (
     <div className="relative h-screen">
@@ -17,7 +18,7 @@ function App() {
             onClick={() => setShowChatbot((prev) => !prev)}
             size="large"
             style={{
-              backgroundColor: 'oklch(64.8% 0.2 131.684)',
+              backgroundColor: '#007B6C',
               color: 'white',
             }}
             className="hover:opacity-90 transition"
@@ -29,12 +30,14 @@ function App() {
 
       {/* Chatbot Popup */}
       <div
-        className={`fixed bottom-4 right-4 w-100 h-[600px] bg-white border border-gray-300 shadow-xl rounded-xl transition-transform duration-500 ${showChatbot ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
-          }`}
+        className={`transition-all duration-500 ${
+          isEnlarged
+            ? "fixed inset-0 z-50 bg-white"
+            : `fixed bottom-4 right-4 w-100 h-[600px] bg-white border border-gray-300 shadow-xl rounded-xl ${showChatbot ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"}`
+        }`}
       >
-        {/* You can replace this with your actual chatbot module */}
-        <div className=" h-full overflow-auto">
-          <Chatbot />
+        <div className="h-full overflow-auto">
+          <Chatbot isEnlarged={isEnlarged} setIsEnlarged={setIsEnlarged} />
         </div>
       </div>
     </div>

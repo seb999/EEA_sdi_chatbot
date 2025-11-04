@@ -18,11 +18,11 @@ app = Flask(__name__)
 CORS(app)
 
 # Configuration
-OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', 'your-api-key-here')
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 MCP_BASE_URL = os.environ.get('MCP_BASE_URL', 'http://127.0.0.1:3001/api')
 
 # Validate API key
-if not OPENAI_API_KEY or OPENAI_API_KEY == 'your-api-key-here':
+if not OPENAI_API_KEY:
     print("ERROR: OPENAI_API_KEY not configured. Please set it in .env file")
     exit(1)
 

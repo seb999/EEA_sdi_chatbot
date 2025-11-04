@@ -4,8 +4,15 @@ import type { ChatGptMessage } from "./../type/ChatGptMessage";
 
 import { IconButton, Tooltip } from "@mui/material";
 import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
+import OpenInFullIcon from "@mui/icons-material/OpenInFull";
+import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 
-const Chatbot = () => {
+interface ChatbotProps {
+      isEnlarged: boolean;
+      setIsEnlarged: (value: boolean) => void;
+}
+
+const Chatbot = ({ isEnlarged, setIsEnlarged }: ChatbotProps) => {
       const [chatGptMessages, setChatGptMessages] = useState<ChatGptMessage[]>([]);
       const [input, setInput] = useState("");
       const bottomRef = useRef<HTMLDivElement>(null);
@@ -85,24 +92,28 @@ const Chatbot = () => {
       };
 
       return (
-            <div className="relative">
+            <div className="flex flex-col h-full">
                   <div
-                        className="sticky top-0 z-50 w-full flex items-center px-4 py-2 border-b"
+                        className="flex-shrink-0 w-full flex items-center justify-between px-4 py-3 border-b"
                         style={{
-                              backgroundColor: 'oklch(64.8% 0.2 131.684 / 70%)', // 90% opacity
-                              borderBottomColor: 'oklch(76.8% 0.233 130.85)', // optional
+                              backgroundColor: '#007B6C',
+                              borderBottomColor: '#005248',
                         }}
                   >
-                        <img
-                              src="/EEALogoTransparent.png"
-                              alt="Profile"
-                              className="w-20 h-20 rounded-full m-1 p-1"
-                              style={{ backgroundColor: "oklch(96.2% 0.018 272.314)" }}
-                        />
-                        <h1 className="text-gray-800 text-lg font-semibold"></h1>
+                        <h1 className="text-white text-lg font-semibold">EEA ChatBot</h1>
+                        <IconButton
+                              onClick={() => setIsEnlarged(!isEnlarged)}
+                              size="small"
+                              aria-label={isEnlarged ? "minimize" : "enlarge"}
+                              style={{ color: 'white' }}
+                        >
+                              <Tooltip title={isEnlarged ? "Minimize" : "Enlarge"}>
+                                    {isEnlarged ? <CloseFullscreenIcon /> : <OpenInFullIcon />}
+                              </Tooltip>
+                        </IconButton>
                   </div>
 
-                  <div className="flex flex-col min-h-[500px]">
+                  <div className="flex flex-col flex-grow overflow-hidden">
                         {/* Messages Area */}
                         <div
                               className={`flex-grow ${chatGptMessages.length === 0
@@ -126,16 +137,22 @@ const Chatbot = () => {
                                                                         handleNewPrompt();
                                                                   }
                                                             }}
-                                                            className="w-full border border-gray-300 rounded-lg p-3 pr-12 focus:outline-none resize-none"
+                                                            className="w-full rounded-lg p-3 pr-12 focus:outline-none resize-none"
+                                                            style={{
+                                                                  border: "2px solid #78CAC0",
+                                                                  outline: "none"
+                                                            }}
                                                             placeholder="Ask something..."
                                                       />
                                                       <IconButton
                                                             onClick={handleNewPrompt}
-                                                            color="success"
                                                             size="small"
                                                             aria-label="run"
                                                             disabled={!input.trim()}
                                                             className="!absolute bottom-2 right-2"
+                                                            style={{
+                                                                  color: input.trim() ? "#007B6C" : "#ACCAE5"
+                                                            }}
                                                       >
                                                             <Tooltip title="Execute">
                                                                   <ArrowCircleRightIcon fontSize="large" />
@@ -153,8 +170,11 @@ const Chatbot = () => {
                                                       className={`w-full flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                                                 >
                                                       <div
-                                                            className={`p-3 rounded-lg shadow whitespace-pre-wrap max-w-md
-                   ${m.role === "user" ? "bg-blue-100 text-black" : "bg-gray-100 text-black"}`}
+                                                            className="p-3 rounded-lg shadow whitespace-pre-wrap max-w-md"
+                                                            style={{
+                                                                  backgroundColor: m.role === "user" ? "#A0D7FF" : "#DAE8F4",
+                                                                  color: "#000000"
+                                                            }}
                                                       >
                                                             <span>{m.content}</span>
                                                       </div>
@@ -168,7 +188,7 @@ const Chatbot = () => {
 
                         {/* Sticky input only when messages exist */}
                         {chatGptMessages.length > 0 && (
-                              <div className="sticky bottom-0 bg-white pt-3 pb-2 px-4">
+                              <div className="flex-shrink-0 bg-white pt-3 pb-2 px-4 border-t border-gray-200">
                                     <div className="flex items-center gap-2 max-w-2xl mx-auto relative w-full">
                                           <textarea
                                                 value={input}
@@ -180,16 +200,22 @@ const Chatbot = () => {
                                                             handleNewPrompt();
                                                       }
                                                 }}
-                                                className="flex-grow border border-gray-300 rounded-lg p-3 pr-12 focus:outline-none resize-none"
+                                                className="flex-grow rounded-lg p-3 pr-12 focus:outline-none resize-none"
+                                                style={{
+                                                      border: "2px solid #78CAC0",
+                                                      outline: "none"
+                                                }}
                                                 placeholder="Ask something..."
                                           />
                                           <IconButton
                                                 onClick={handleNewPrompt}
-                                                color="success"
                                                 size="small"
                                                 aria-label="run"
                                                 disabled={!input.trim()}
                                                 className="!absolute bottom-2 right-2"
+                                                style={{
+                                                      color: input.trim() ? "#007B6C" : "#ACCAE5"
+                                                }}
                                           >
                                                 <Tooltip title="Execute">
                                                       <ArrowCircleRightIcon fontSize="large" />
