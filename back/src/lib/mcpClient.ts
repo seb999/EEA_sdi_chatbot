@@ -1,9 +1,9 @@
 /**
- * MCP Client - Connect to MCP Server using SSE Transport
+ * MCP Client - Connect to MCP Server using Streamable HTTP Transport
  * Uses the official Model Context Protocol SDK
  */
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
 interface MCPTool {
   name: string;
@@ -26,7 +26,7 @@ interface OpenAITool {
 
 class MCPClientWrapper {
   private client: Client | null = null;
-  private transport: SSEClientTransport | null = null;
+  private transport: StreamableHTTPClientTransport | null = null;
   private mcpBaseUrl: string;
   private availableTools: MCPTool[] = [];
   private initialized: boolean = false;
@@ -47,11 +47,9 @@ class MCPClientWrapper {
     try {
       console.log(`[MCP Client] Connecting to ${this.mcpBaseUrl}...`);
 
-      // Create SSE transport using standard MCP endpoints
-      // GET / for SSE stream, POST / for messages
-      this.transport = new SSEClientTransport(
-        new URL(this.mcpBaseUrl),  // SSE endpoint: GET /
-        new URL(this.mcpBaseUrl)   // Message endpoint: POST /
+      // Create Streamable HTTP transport for standard MCP endpoint
+      this.transport = new StreamableHTTPClientTransport(
+        new URL(this.mcpBaseUrl)  // Base URL for both GET/POST requests
       );
 
       // Create MCP client
@@ -69,8 +67,13 @@ class MCPClientWrapper {
 
       console.log('[MCP Client] Client created, attempting to connect...');
 
-      // Connect to server
-      await this.client.connect(this.transport);
+      // Connect to server with timeout
+      const connectPromise = this.client.connect(this.transport);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000)
+      );
+
+      await Promise.race([connectPromise, timeoutPromise]);
 
       console.log('[MCP Client] Connected! Listing available tools...');
 
