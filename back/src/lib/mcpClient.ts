@@ -83,6 +83,7 @@ class MCPClientWrapper {
 
     } catch (error: any) {
       console.error('[MCP Client] Failed to initialize:', error.message);
+      console.error('[MCP Client] Error details:', error);
       throw new Error(`MCP initialization failed: ${error.message}`);
     }
   }
@@ -207,10 +208,13 @@ export async function initializeMCP(baseUrl?: string): Promise<MCPClientWrapper 
   try {
     const client = getMCPClient(baseUrl);
     await client.initialize();
+    console.log('[MCP Client] ✅ Initialization complete and ready');
     return client;
   } catch (error: any) {
     console.error('[MCP Client] Initialization failed:', error.message);
+    console.error('[MCP Client] Full error:', error);
     console.log('[MCP Client] ⚠️  Chatbot will work without MCP catalogue tools');
+    console.log('[MCP Client] Make sure MCP server is running on:', baseUrl || process.env.MCP_BASE_URL || 'http://127.0.0.1:3001');
     return null;
   }
 }
