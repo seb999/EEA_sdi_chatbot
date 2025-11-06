@@ -31,9 +31,8 @@ router.post('/', async (req: Request, res: Response) => {
 
     // Log incoming request
     const userMessage = prompt[prompt.length - 1]?.content || '';
-    console.log('\n' + '='.repeat(60));
-    console.log(`📨 New chat request: "${userMessage.substring(0, 50)}${userMessage.length > 50 ? '...' : ''}"`);
-    console.log('='.repeat(60));
+    console.log(`\n📨 Chat: "${userMessage.substring(0, 60)}${userMessage.length > 60 ? '...' : ''}"`);
+
 
     // Get MCP client
     const mcpClient = getMCPClient();
@@ -98,13 +97,8 @@ Be conversational and friendly while maintaining professionalism.`;
       if (mcpTools.length > 0) {
         apiParams.tools = mcpTools;
         apiParams.tool_choice = 'auto';
-        console.log(`📋 ${mcpTools.length} MCP tools available: ${mcpTools.map(t => t.function.name).join(', ')}`);
       }
-    } else {
-      console.log('💬 Processing chat without MCP tools');
     }
-
-    console.log('🤖 Calling OpenAI API...');
 
     // First API call - check if model wants to use tools
     const response = await openai.chat.completions.create(apiParams);
@@ -112,7 +106,8 @@ Be conversational and friendly while maintaining professionalism.`;
 
     // Check if the model wants to call tools
     if (message.tool_calls && message.tool_calls.length > 0) {
-      console.log(`🔧 LLM decided to call ${message.tool_calls.length} tool(s)`);
+      const toolNames = message.tool_calls.map(tc => tc.function.name).join(', ');
+      console.log(`🔧 Using MCP tools: ${toolNames}`);
 
       // Add assistant message to conversation
       messages.push(message);
@@ -121,9 +116,6 @@ Be conversational and friendly while maintaining professionalism.`;
       for (const toolCall of message.tool_calls) {
         const functionName = toolCall.function.name;
         const functionArgs = JSON.parse(toolCall.function.arguments);
-
-        console.log(`  Calling tool: ${functionName}`);
-        console.log(`  Arguments:`, JSON.stringify(functionArgs, null, 2));
 
         // Call the MCP tool
         const toolResult = await mcpClient.callTool(functionName, functionArgs);
@@ -134,11 +126,7 @@ Be conversational and friendly while maintaining professionalism.`;
           tool_call_id: toolCall.id,
           content: toolResult
         });
-
-        console.log(`  Result: ${toolResult.substring(0, 200)}...`);
       }
-
-      console.log('✅ All tools executed, sending results back to LLM...');
 
       // Second API call with tool results - stream the response
       const streamResponse = await openai.chat.completions.create({
@@ -156,7 +144,7 @@ Be conversational and friendly while maintaining professionalism.`;
 
     } else {
       // No tool calls, stream the direct response
-      console.log('💬 LLM responding directly without tools');
+      console.log('💬 Direct response (no tools used)');
 
       const streamResponse = await openai.chat.completions.create({
         model: 'gpt-4o',
@@ -172,7 +160,6 @@ Be conversational and friendly while maintaining professionalism.`;
       }
     }
 
-    console.log('✓ Response streamed to client');
     res.end();
 
   } catch (error: any) {

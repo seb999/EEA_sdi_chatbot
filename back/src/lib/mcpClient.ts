@@ -49,7 +49,7 @@ class MCPClientWrapper {
 
       // Create Streamable HTTP transport for standard MCP endpoint
       this.transport = new StreamableHTTPClientTransport(
-        new URL(this.mcpBaseUrl)  // Base URL for both GET/POST requests
+        new URL(this.mcpBaseUrl)
       );
 
       // Create MCP client
@@ -65,8 +65,6 @@ class MCPClientWrapper {
         }
       );
 
-      console.log('[MCP Client] Client created, attempting to connect...');
-
       // Connect to server with timeout
       const connectPromise = this.client.connect(this.transport);
       const timeoutPromise = new Promise((_, reject) =>
@@ -75,24 +73,18 @@ class MCPClientWrapper {
 
       await Promise.race([connectPromise, timeoutPromise]);
 
-      console.log('[MCP Client] Connected! Listing available tools...');
-
       // List available tools
       const toolsResponse = await this.client.listTools();
       this.availableTools = toolsResponse.tools as MCPTool[];
 
-      console.log(`[MCP Client] Received ${this.availableTools.length} tools from server`);
-
       this.initialized = true;
-      console.log(`[MCP Client] ✓ Connected with ${this.availableTools.length} tools available`);
 
-      // Log tool names
+      // Log successful connection
       const toolNames = this.availableTools.map(t => t.name).join(', ');
-      console.log(`[MCP Client] Tools: ${toolNames}`);
+      console.log(`[MCP Client] ✓ Connected with ${this.availableTools.length} tools: ${toolNames}`);
 
     } catch (error: any) {
-      console.error('[MCP Client] Failed to initialize:', error.message);
-      console.error('[MCP Client] Error details:', error);
+      console.error('[MCP Client] ✗ Failed to connect:', error.message);
       throw new Error(`MCP initialization failed: ${error.message}`);
     }
   }
@@ -134,9 +126,6 @@ class MCPClientWrapper {
     }
 
     try {
-      console.log(`[MCP Client] Calling tool: ${toolName}`);
-      console.log(`[MCP Client] Arguments:`, JSON.stringify(args, null, 2));
-
       const result = await this.client.callTool({
         name: toolName,
         arguments: args
@@ -144,13 +133,10 @@ class MCPClientWrapper {
 
       // Format the result
       const formattedResult = this.formatToolResult(result);
-
-      console.log(`[MCP Client] Result:`, formattedResult.substring(0, 200) + '...');
-
       return formattedResult;
 
     } catch (error: any) {
-      console.error(`[MCP Client] Tool call failed:`, error.message);
+      console.error(`[MCP Client] ✗ Tool call failed (${toolName}):`, error.message);
       return `Error calling tool ${toolName}: ${error.message}`;
     }
   }
@@ -217,13 +203,10 @@ export async function initializeMCP(baseUrl?: string): Promise<MCPClientWrapper 
   try {
     const client = getMCPClient(baseUrl);
     await client.initialize();
-    console.log('[MCP Client] ✅ Initialization complete and ready');
     return client;
   } catch (error: any) {
-    console.error('[MCP Client] Initialization failed:', error.message);
-    console.error('[MCP Client] Full error:', error);
-    console.log('[MCP Client] ⚠️  Chatbot will work without MCP catalogue tools');
-    console.log('[MCP Client] Make sure MCP server is running on:', baseUrl || process.env.MCP_BASE_URL || 'http://127.0.0.1:3001');
+    console.error('[MCP Client] ⚠️  Initialization failed:', error.message);
+    console.log('[MCP Client] Chatbot will work without MCP catalogue tools');
     return null;
   }
 }
