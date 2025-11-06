@@ -2,24 +2,80 @@ import { useEffect, useRef, useState } from "react";
 import "./../App.css";
 import type { ChatGptMessage } from "./../type/ChatGptMessage";
 
-import { IconButton, Tooltip } from "@mui/material";
+import { IconButton, Tooltip, Button, Chip } from "@mui/material";
 import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
+import LinkIcon from "@mui/icons-material/Link";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import SDIConnectionDialog from "./../components/SDIConnectionDialog";
 
 interface ChatbotProps {
       isEnlarged: boolean;
       setIsEnlarged: (value: boolean) => void;
 }
 
+interface SDIConnectionInfo {
+      name: string;
+      surname: string;
+      username: string;
+      server: string;
+}
+
 const Chatbot = ({ isEnlarged, setIsEnlarged }: ChatbotProps) => {
       const [chatGptMessages, setChatGptMessages] = useState<ChatGptMessage[]>([]);
       const [input, setInput] = useState("");
       const bottomRef = useRef<HTMLDivElement>(null);
+      const [sdiDialogOpen, setSdiDialogOpen] = useState(false);
+      const [sdiConnected, setSdiConnected] = useState(false);
+      const [sdiUserInfo, setSdiUserInfo] = useState<SDIConnectionInfo | null>(null);
 
       useEffect(() => {
             bottomRef.current?.scrollIntoView({ behavior: "smooth" });
       }, [chatGptMessages]);
+
+      // Check SDI connection status on mount
+      useEffect(() => {
+            checkSDIStatus();
+      }, []);
+
+      const checkSDIStatus = async () => {
+            try {
+                  const response = await fetch('/api/sdi/status', {
+                        credentials: 'include',
+                  });
+                  const data = await response.json();
+                  if (data.connected) {
+                        setSdiConnected(true);
+                        setSdiUserInfo({
+                              name: data.user.name,
+                              surname: data.user.surname,
+                              username: data.user.username,
+                              server: data.server,
+                        });
+                  }
+            } catch (err) {
+                  console.error('Failed to check SDI status:', err);
+            }
+      };
+
+      const handleSDIConnect = (userInfo: SDIConnectionInfo) => {
+            setSdiConnected(true);
+            setSdiUserInfo(userInfo);
+      };
+
+      const handleSDIDisconnect = async () => {
+            try {
+                  await fetch('/api/sdi/disconnect', {
+                        method: 'POST',
+                        credentials: 'include',
+                  });
+                  setSdiConnected(false);
+                  setSdiUserInfo(null);
+            } catch (err) {
+                  console.error('Failed to disconnect:', err);
+            }
+      };
 
       const handleNewPrompt = async () => {
             if (!input.trim()) return;
@@ -101,16 +157,61 @@ const Chatbot = ({ isEnlarged, setIsEnlarged }: ChatbotProps) => {
                         }}
                   >
                         <h1 className="text-white text-lg font-semibold">EEA ChatBot</h1>
-                        <IconButton
-                              onClick={() => setIsEnlarged(!isEnlarged)}
-                              size="small"
-                              aria-label={isEnlarged ? "minimize" : "enlarge"}
-                              style={{ color: 'white' }}
-                        >
-                              <Tooltip title={isEnlarged ? "Minimize" : "Enlarge"}>
-                                    {isEnlarged ? <CloseFullscreenIcon /> : <OpenInFullIcon />}
-                              </Tooltip>
-                        </IconButton>
+                        <div className="flex items-center gap-2">
+                              {sdiConnected && sdiUserInfo ? (
+                                    <>
+                                          <Chip
+                                                icon={<CheckCircleIcon style={{ color: 'white' }} />}
+                                                label={`${sdiUserInfo.name} ${sdiUserInfo.surname}`}
+                                                size="small"
+                                                style={{
+                                                      backgroundColor: '#005248',
+                                                      color: 'white',
+                                                }}
+                                          />
+                                          <Tooltip title="Disconnect from SDI">
+                                                <Button
+                                                      variant="outlined"
+                                                      size="small"
+                                                      onClick={handleSDIDisconnect}
+                                                      style={{
+                                                            color: 'white',
+                                                            borderColor: 'white',
+                                                      }}
+                                                      className="hover:opacity-90 transition"
+                                                >
+                                                      Disconnect
+                                                </Button>
+                                          </Tooltip>
+                                    </>
+                              ) : (
+                                    <Tooltip title="Connect to SDI">
+                                          <Button
+                                                variant="outlined"
+                                                size="small"
+                                                startIcon={<LinkIcon />}
+                                                onClick={() => setSdiDialogOpen(true)}
+                                                style={{
+                                                      color: 'white',
+                                                      borderColor: 'white',
+                                                }}
+                                                className="hover:opacity-90 transition"
+                                          >
+                                                Connect SDI
+                                          </Button>
+                                    </Tooltip>
+                              )}
+                              <IconButton
+                                    onClick={() => setIsEnlarged(!isEnlarged)}
+                                    size="small"
+                                    aria-label={isEnlarged ? "minimize" : "enlarge"}
+                                    style={{ color: 'white' }}
+                              >
+                                    <Tooltip title={isEnlarged ? "Minimize" : "Enlarge"}>
+                                          {isEnlarged ? <CloseFullscreenIcon /> : <OpenInFullIcon />}
+                                    </Tooltip>
+                              </IconButton>
+                        </div>
                   </div>
 
                   <div className="flex flex-col flex-grow overflow-hidden">
@@ -225,6 +326,13 @@ const Chatbot = ({ isEnlarged, setIsEnlarged }: ChatbotProps) => {
                               </div>
                         )}
                   </div>
+
+                  {/* SDI Connection Dialog */}
+                  <SDIConnectionDialog
+                        open={sdiDialogOpen}
+                        onClose={() => setSdiDialogOpen(false)}
+                        onConnected={handleSDIConnect}
+                  />
             </div>
       );
 }
