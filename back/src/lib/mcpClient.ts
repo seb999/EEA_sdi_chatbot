@@ -67,12 +67,18 @@ class MCPClientWrapper {
         }
       );
 
+      console.log('[MCP Client] Client created, attempting to connect...');
+
       // Connect to server
       await this.client.connect(this.transport);
+
+      console.log('[MCP Client] Connected! Listing available tools...');
 
       // List available tools
       const toolsResponse = await this.client.listTools();
       this.availableTools = toolsResponse.tools as MCPTool[];
+
+      console.log(`[MCP Client] Received ${this.availableTools.length} tools from server`);
 
       this.initialized = true;
       console.log(`[MCP Client] ✓ Connected with ${this.availableTools.length} tools available`);
