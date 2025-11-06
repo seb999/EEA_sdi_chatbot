@@ -28,3 +28,12 @@ front/dist-ssr/
 back/node_modules/
 back/.env
 back/dist/
+
+# Visual Studio
+obj/
+bin/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
