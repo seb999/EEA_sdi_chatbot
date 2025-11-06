@@ -8,22 +8,16 @@ export default defineConfig({
     server: {
         port: 60678,
         proxy: {
-            '/chat': 'http://127.0.0.1:5000',
+            '/chat': {
+                target: 'http://127.0.0.1:5000',
+                changeOrigin: true,
+            },
             '/api/sdi': {
                 target: 'http://127.0.0.1:5000',
                 changeOrigin: true,
             },
-            // SSE MCP Server endpoints
-            '/sse': {
-                target: 'http://127.0.0.1:3001',
-                changeOrigin: true,
-            },
-            '/message': {
-                target: 'http://127.0.0.1:3001',
-                changeOrigin: true,
-            },
             '/health': {
-                target: 'http://127.0.0.1:3001',
+                target: 'http://127.0.0.1:5000',
                 changeOrigin: true,
             },
         }

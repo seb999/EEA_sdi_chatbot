@@ -47,10 +47,11 @@ class MCPClientWrapper {
     try {
       console.log(`[MCP Client] Connecting to ${this.mcpBaseUrl}...`);
 
-      // Create SSE transport
+      // Create SSE transport using standard MCP endpoints
+      // GET / for SSE stream, POST / for messages
       this.transport = new SSEClientTransport(
-        new URL(`${this.mcpBaseUrl}/sse`),
-        new URL(`${this.mcpBaseUrl}/message`)
+        new URL(this.mcpBaseUrl),  // SSE endpoint: GET /
+        new URL(this.mcpBaseUrl)   // Message endpoint: POST /
       );
 
       // Create MCP client
